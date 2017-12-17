@@ -15,6 +15,7 @@ This looks good, though maybe geometry or ptinpoly or something like that:
 https://stackoverflow.com/a/36684485/355270
 
 
+This also means we can use z-fighting, easily visible with rgl, to indicate when we have overlapping features - and also ilustrate how we need to de-normalize for discrete features in 3D, etc. etc. 
 
 ```R
 library(raster)
