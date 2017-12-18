@@ -60,6 +60,8 @@ library(dplyr)
 #>     intersect, setdiff, setequal, union
 library(pfft)
 library(rgl)
+#> Warning in rgl.init(initValue, onlyNULL): RGL: unable to open X11 display
+#> Warning: 'rgl_init' failed, running with rgl.useNULL = TRUE
 data("holey", package = "spbabel")
 #x <- st_as_sf(spbabel::sp(holey))
 library(sf)
@@ -151,45 +153,9 @@ x <- nc
 #x <- minimal_mesh
 max_area <- NULL
 p <- silicate::PATH(x)  
-
-edge_RTriangle <- function(x, max_area = NULL, ...) {
-  ps <- RTriangle::pslg(P = as.matrix(x[["vertex"]][c("x_", "y_")]), 
-                      S = matrix(match(silicate::sc_edge(x) %>% 
-    dplyr::select(.data$.vertex0, .data$.vertex1) %>% 
-    as.matrix() %>% t() %>% as.vector(), x[["vertex"]][["vertex_"]]), ncol = 2, byrow = TRUE))
-  RTriangle::triangulate(ps, a = max_area)
-}
-path_triangle_map <- function(x, RTri) {
-  centroids <- matrix(unlist(lapply(split(RTri[["P"]][t(RTri[["T"]]), ], rep(seq(nrow(RTri$T)), each = 3)), .colMeans, 3, 2)), 
-                    ncol = 2, byrow = TRUE)
-  ex <- extents(x)
-  gm <- x[["path"]]
-  ## map of which points to look up
-  pipmap <- split(ex, ex$path_) %>% 
-    purrr::map(~ (centroids[,1] >= .x[["xmn"]] & 
-                  centroids[,1] <= .x[["xmx"]] & 
-                  centroids[, 2] >= .x[["ymn"]] & 
-                  centroids[,2] <= .x[["ymx"]]))
-  pipmap <- pipmap[gm$path_]
-  len <- purrr::map_int(pipmap, sum)
-  ## now the lookup
-  lc <- split(silicate::sc_coord(p), rep(seq_len(nrow(gm)), gm$ncoords_)) 
-  ## this is the result
-  pip <- pipmap
-  for (i in seq_along(pipmap)) {
-    if (len[i] > 0) {
-      ## replace this with a generic native function
-    pip[[i]][pipmap[[i]]] <-    sp::point.in.polygon(centroids[pipmap[[i]], 1], centroids[pipmap[[i]],2], lc[[i]][["x_"]], lc[[i]][["y_"]]) > 0
-    } else {
-      pip[[i]][] <- FALSE
-    }
-  }
- ix <- lapply(pip, which)
- tibble::tibble(path_ = rep(names(ix), lengths(ix)), 
-                triangle_idx = unlist(ix))
-}
 RTri <- edge_RTriangle(p)
 ptm <- path_triangle_map(p, RTri)
+
 
 triangle <- tibble::tibble(triangle_ = silicate::sc_uid(nrow(RTri$T)), triangle_idx = 1:nrow(RTri$T))
 ptm[["triangle_"]] <- triangle[["triangle_"]][ptm[["triangle_idx"]]]
@@ -197,9 +163,6 @@ ptm <- dplyr::inner_join(ptm, p[["path"]][c("path_", "object_", "subobject")])
 #> Joining, by = "path_"
 ptm <- ptm %>% group_by(object_,  subobject, triangle_idx) %>% mutate(n = n()) %>% ungroup()  %>% dplyr::filter(n < 2)
 
-#triangle <- triangle %>% inner_join(ptm["triangle_idx"], "triangle_idx")
-#ptm[["triangle_"]] <- triangle[["triangle_"]][ptm[["triangle_idx"]]]
-#ptm <- ptm %>% dplyr::filter(!is.na(triangle_))
 
 o <- p[["object"]]
 t <- ptm %>% #ptm %>% dplyr::inner_join(p$path %>% dplyr::select(object_, path_)) %>% 

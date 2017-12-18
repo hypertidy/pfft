@@ -7,11 +7,14 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 ByteCompile: true
-LinkingTo: 
-    Rcpp
 Imports: 
-    Rcpp,
     dplyr,
+    rlang,
+    RTriangle,
     silicate,
-    rlang
+    sp,
+    tibble
 RoxygenNote: 6.0.1
+Suggests: 
+    ggplot2,
+    purrr

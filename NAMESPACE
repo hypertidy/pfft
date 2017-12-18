@@ -2,11 +2,8 @@
 
 S3method(extents,PATH)
 S3method(extents,default)
-export(PnPoly)
-export(cn_PnPoly)
+export(edge_RTriangle)
 export(extents)
-export(wn_PnPoly)
-importFrom(Rcpp,sourceCpp)
+export(path_triangle_map)
 importFrom(dplyr,"%>%")
 importFrom(rlang,.data)
-useDynLib(pfft)

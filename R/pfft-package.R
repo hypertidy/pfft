@@ -5,8 +5,5 @@
 
 #' pfft
 #'
-#' @name pfft
 #' @docType package
-#' @useDynLib pfft
-#' @importFrom Rcpp sourceCpp
 NULL
