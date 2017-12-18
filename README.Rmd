@@ -62,8 +62,7 @@ library(rgl)
 data("holey", package = "spbabel")
 #x <- st_as_sf(spbabel::sp(holey))
 library(sf)
-example(st_read)
-x <- nc
+x <- read_sf(system.file("shape/nc.shp", package="sf"))
 #data("minimal_mesh", package = "silicate")
 #x <- minimal_mesh
 max_area <- NULL
