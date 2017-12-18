@@ -109,32 +109,32 @@
 <span class='fu'>path_triangle_map</span>(<span class='no'>p</span>, <span class='no'>tr</span>)</div><div class='output co'>#&gt; # A tibble: 20 x 2
 #&gt;       path_ triangle_idx
 #&gt;       &lt;chr&gt;        &lt;int&gt;
-#&gt;  1 46a17109            1
-#&gt;  2 46a17109            2
-#&gt;  3 46a17109            3
-#&gt;  4 46a17109            4
-#&gt;  5 46a17109            5
-#&gt;  6 46a17109            6
-#&gt;  7 46a17109            7
-#&gt;  8 46a17109            8
-#&gt;  9 46a17109            9
-#&gt; 10 46a17109           10
-#&gt; 11 46a17109           11
-#&gt; 12 46a17109           14
-#&gt; 13 46a17109           15
-#&gt; 14 46a17109           16
-#&gt; 15 46a17109           17
-#&gt; 16 1df9f691            3
-#&gt; 17 1df9f691            8
-#&gt; 18 1df9f691            9
-#&gt; 19 7db01220           12
-#&gt; 20 7db01220           13</div><div class='input'>
+#&gt;  1 087cf15d            1
+#&gt;  2 087cf15d            2
+#&gt;  3 087cf15d            3
+#&gt;  4 087cf15d            4
+#&gt;  5 087cf15d            5
+#&gt;  6 087cf15d            6
+#&gt;  7 087cf15d            7
+#&gt;  8 087cf15d            8
+#&gt;  9 087cf15d            9
+#&gt; 10 087cf15d           10
+#&gt; 11 087cf15d           11
+#&gt; 12 087cf15d           14
+#&gt; 13 087cf15d           15
+#&gt; 14 087cf15d           16
+#&gt; 15 087cf15d           17
+#&gt; 16 e304093c            3
+#&gt; 17 e304093c            8
+#&gt; 18 e304093c            9
+#&gt; 19 c4f03b14           12
+#&gt; 20 c4f03b14           13</div><div class='input'>
 <span class='fu'>library</span>(<span class='no'>ggplot2</span>)
 <span class='fu'>library</span>(<span class='no'>dplyr</span>)
 <span class='fu'>library</span>(<span class='no'>purrr</span>)
 <span class='fu'><a href='http://www.rdocumentation.org/packages/ggplot2/topics/ggplot'>ggplot</a></span>(<span class='fu'>path_triangle_map</span>(<span class='no'>p</span>, <span class='no'>tr</span>) <span class='kw'>%&gt;%</span>
 <span class='fu'><a href='http://dplyr.tidyverse.org/reference/join.html'>inner_join</a></span>(<span class='fu'><a href='http://www.rdocumentation.org/packages/purrr/topics/reduce'>reduce</a></span>(<span class='no'>p</span>[<span class='fu'>c</span>(<span class='st'>"path"</span>, <span class='st'>"path_link_vertex"</span>, <span class='st'>"vertex"</span>)], <span class='no'>inner_join</span>))) +
-<span class='fu'><a href='http://www.rdocumentation.org/packages/ggplot2/topics/geom_polygon'>geom_polygon</a></span>(<span class='fu'><a href='http://www.rdocumentation.org/packages/ggplot2/topics/aes'>aes</a></span>(<span class='no'>x_</span>, <span class='no'>y_</span>, <span class='kw'>fill</span> <span class='kw'>=</span> <span class='no'>path_</span>)) + <span class='fu'><a href='http://www.rdocumentation.org/packages/ggplot2/topics/facet_wrap'>facet_wrap</a></span>(~<span class='no'>path_</span>)</div><div class='output co'>#&gt; <span class='message'>Joining, by = "path_"</span></div><div class='output co'>#&gt; <span class='message'>Joining, by = "vertex_"</span></div><div class='output co'>#&gt; <span class='message'>Joining, by = "path_"</span></div><div class='img'><img src='path_triangle_map-1.png' alt='' width='700' height='432.632880098887' /></div><div class='input'>
+<span class='fu'><a href='http://www.rdocumentation.org/packages/ggplot2/topics/geom_polygon'>geom_polygon</a></span>(<span class='fu'><a href='http://www.rdocumentation.org/packages/ggplot2/topics/aes'>aes</a></span>(<span class='no'>x_</span>, <span class='no'>y_</span>, <span class='kw'>fill</span> <span class='kw'>=</span> <span class='no'>path_</span>)) + <span class='fu'><a href='http://www.rdocumentation.org/packages/ggplot2/topics/facet_wrap'>facet_wrap</a></span>(~<span class='no'>path_</span>)</div><div class='output co'>#&gt; <span class='message'>Joining, by = "path_"</span></div><div class='output co'>#&gt; <span class='message'>Joining, by = "vertex_"</span></div><div class='output co'>#&gt; <span class='message'>Joining, by = "path_"</span></div><div class='img'><img src='path_triangle_map-2.png' alt='' width='700' height='432.632880098887' /></div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
