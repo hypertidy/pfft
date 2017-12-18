@@ -1,0 +1,156 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+# pfft
+
+The goal of pfft is to ...
+
+## Installation
+
+You can install pfft from github with:
+
+```{r gh-installation, eval = FALSE}
+# install.packages("devtools")
+devtools::install_github("mdsumner/pfft")
+```
+
+## Example
+
+This is a basic example which shows you how to solve a common problem:
+
+```{r example}
+## basic example code
+```
+
+
+
+Polygon finder for triangles
+
+This workflow came from anglr, the current scheme is to triangulate set-wide, on the entire layer and then find out which polygon each triangle belongs to. This is because polygons that wrap around a void but only touch at a single vertex end up with that void being kept as only the regions inside holes was being removed. 
+
+If we do it set-wide we can't check each feature individually (a feature might be inside a hole of another feature), and we can't sensibly normalize triangles that fall into overlapping features. 
+
+Together this gives the best of all (that's the theory, today!) and solves a bunch of lingering problems that anglr has. 
+
+If we provide a native point-in-polygon routine here then we can abandon dependencies that bring in other unused libs. 
+
+This looks good, though maybe geometry or ptinpoly or something like that: 
+
+https://stackoverflow.com/a/36684485/355270
+
+
+This also means we can use z-fighting, easily visible with rgl, to indicate when we have overlapping features - and also ilustrate how we need to de-normalize for discrete features in 3D, etc. etc. 
+
+```{r, webgl=TRUE}
+library(raster)
+library(spex)
+library(sf)
+library(dplyr)
+library(pfft)
+library(rgl)
+data("holey", package = "spbabel")
+#x <- st_as_sf(spbabel::sp(holey))
+library(sf)
+example(st_read)
+x <- nc
+#data("minimal_mesh", package = "silicate")
+#x <- minimal_mesh
+max_area <- NULL
+p <- silicate::PATH(x)  
+
+edge_RTriangle <- function(x, max_area = NULL, ...) {
+  ps <- RTriangle::pslg(P = as.matrix(x[["vertex"]][c("x_", "y_")]), 
+                      S = matrix(match(silicate::sc_edge(x) %>% 
+    dplyr::select(.data$.vertex0, .data$.vertex1) %>% 
+    as.matrix() %>% t() %>% as.vector(), x[["vertex"]][["vertex_"]]), ncol = 2, byrow = TRUE))
+  RTriangle::triangulate(ps, a = max_area)
+}
+path_triangle_map <- function(x, RTri) {
+  centroids <- matrix(unlist(lapply(split(RTri[["P"]][t(RTri[["T"]]), ], rep(seq(nrow(RTri$T)), each = 3)), .colMeans, 3, 2)), 
+                    ncol = 2, byrow = TRUE)
+  ex <- extents(x)
+  gm <- x[["path"]]
+  ## map of which points to look up
+  pipmap <- split(ex, ex$path_) %>% 
+    purrr::map(~ (centroids[,1] >= .x[["xmn"]] & 
+                  centroids[,1] <= .x[["xmx"]] & 
+                  centroids[, 2] >= .x[["ymn"]] & 
+                  centroids[,2] <= .x[["ymx"]]))
+  pipmap <- pipmap[gm$path_]
+  len <- purrr::map_int(pipmap, sum)
+  ## now the lookup
+  lc <- split(silicate::sc_coord(p), rep(seq_len(nrow(gm)), gm$ncoords_)) 
+  ## this is the result
+  pip <- pipmap
+  for (i in seq_along(pipmap)) {
+    if (len[i] > 0) {
+      ## replace this with a generic native function
+    pip[[i]][pipmap[[i]]] <-    sp::point.in.polygon(centroids[pipmap[[i]], 1], centroids[pipmap[[i]],2], lc[[i]][["x_"]], lc[[i]][["y_"]]) > 0
+    } else {
+      pip[[i]][] <- FALSE
+    }
+  }
+ ix <- lapply(pip, which)
+ tibble::tibble(path_ = rep(names(ix), lengths(ix)), 
+                triangle_idx = unlist(ix))
+}
+RTri <- edge_RTriangle(p)
+ptm <- path_triangle_map(p, RTri)
+
+triangle <- tibble::tibble(triangle_ = silicate::sc_uid(nrow(RTri$T)), triangle_idx = 1:nrow(RTri$T))
+ptm[["triangle_"]] <- triangle[["triangle_"]][ptm[["triangle_idx"]]]
+ptm <- dplyr::inner_join(ptm, p[["path"]][c("path_", "object_", "subobject")])
+ptm <- ptm %>% group_by(object_,  subobject, triangle_idx) %>% mutate(n = n()) %>% ungroup()  %>% dplyr::filter(n < 2)
+
+#triangle <- triangle %>% inner_join(ptm["triangle_idx"], "triangle_idx")
+#ptm[["triangle_"]] <- triangle[["triangle_"]][ptm[["triangle_idx"]]]
+#ptm <- ptm %>% dplyr::filter(!is.na(triangle_))
+
+o <- p[["object"]]
+t <- ptm %>% #ptm %>% dplyr::inner_join(p$path %>% dplyr::select(object_, path_)) %>% 
+  dplyr::select(object_, triangle_)
+remove_idx <-  setdiff(1:nrow(RTri$T), ptm$triangle_idx)
+ptm <- ptm %>% dplyr::arrange(triangle_idx)
+if (length(remove_idx) > 0) TT <- RTri$T[-remove_idx, ] else TT <- RTri$T
+tXv <- tibble::tibble(vertex_ = p[["vertex"]][["vertex_"]][t(TT)], 
+                      triangle_ = rep(ptm[["triangle_"]], each = 3))
+
+v <- p[["vertex"]]
+outlist <- list(o = o, t = t, tXv = tXv, v = v)
+ class(outlist) <- "trimesh"
+  
+library(anglr)
+rgl::rgl.clear()
+plot(outlist)
+rgl::rglwidget()
+  
+  
+```
+
+
+```R
+# gibble_pip <- function(pts, gm, coords) {
+#   object_id <- rep(seq_len(nrow(gm)), gm[["nrow"]])
+#   tibble::tibble(ipoly = sp::over(SpatialPoints(as.matrix(pts)), 
+#                                   sp::SpatialPolygons(purrr::imap(split(coords, object_id), 
+#                                                                   ~ sp::Polygons(list(sp::Polygon(as.matrix(.x))), .y)))
+#   ))
+# }
+```
+# Dev
+
+```R
+
+tools::package_native_routine_registration_skeleton("../pfft", "src/init.c",character_only = FALSE)
+```
