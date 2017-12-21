@@ -109,36 +109,32 @@
 <span class='fu'>path_triangle_map</span>(<span class='no'>p</span>, <span class='no'>tr</span>)</div><div class='output co'>#&gt; # A tibble: 20 x 2
 #&gt;       path_ triangle_idx
 #&gt;       &lt;chr&gt;        &lt;int&gt;
-#&gt;  1 91879047            1
-#&gt;  2 91879047            2
-#&gt;  3 91879047            3
-#&gt;  4 91879047            4
-#&gt;  5 91879047            5
-#&gt;  6 91879047            6
-#&gt;  7 91879047            7
-#&gt;  8 91879047            8
-#&gt;  9 91879047            9
-#&gt; 10 91879047           10
-#&gt; 11 91879047           11
-#&gt; 12 91879047           14
-#&gt; 13 91879047           15
-#&gt; 14 91879047           16
-#&gt; 15 91879047           17
-#&gt; 16 7a545a7e            3
-#&gt; 17 7a545a7e            8
-#&gt; 18 7a545a7e            9
-#&gt; 19 41344730           12
-#&gt; 20 41344730           13</div><div class='input'>
-<span class='fu'>library</span>(<span class='no'>ggplot2</span>)</div><div class='output co'>#&gt; <span class='message'>Want to understand how all the pieces fit together? Buy the ggplot2</span>
-#&gt; <span class='message'>book: http://ggplot2.org/book/</span></div><div class='input'><span class='fu'>library</span>(<span class='no'>dplyr</span>)</div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>Attaching package: ‘dplyr’</span></div><div class='output co'>#&gt; <span class='message'>The following objects are masked from ‘package:stats’:</span>
-#&gt; <span class='message'></span>
-#&gt; <span class='message'>    filter, lag</span></div><div class='output co'>#&gt; <span class='message'>The following objects are masked from ‘package:base’:</span>
-#&gt; <span class='message'></span>
-#&gt; <span class='message'>    intersect, setdiff, setequal, union</span></div><div class='input'><span class='fu'>library</span>(<span class='no'>purrr</span>)
+#&gt;  1 8f1e6d1c            1
+#&gt;  2 8f1e6d1c            2
+#&gt;  3 8f1e6d1c            3
+#&gt;  4 8f1e6d1c            4
+#&gt;  5 8f1e6d1c            5
+#&gt;  6 8f1e6d1c            6
+#&gt;  7 8f1e6d1c            7
+#&gt;  8 8f1e6d1c            8
+#&gt;  9 8f1e6d1c            9
+#&gt; 10 8f1e6d1c           10
+#&gt; 11 8f1e6d1c           11
+#&gt; 12 8f1e6d1c           14
+#&gt; 13 8f1e6d1c           15
+#&gt; 14 8f1e6d1c           16
+#&gt; 15 8f1e6d1c           17
+#&gt; 16 61ae9bd3            3
+#&gt; 17 61ae9bd3            8
+#&gt; 18 61ae9bd3            9
+#&gt; 19 2c441719           12
+#&gt; 20 2c441719           13</div><div class='input'>
+<span class='fu'>library</span>(<span class='no'>ggplot2</span>)
+<span class='fu'>library</span>(<span class='no'>dplyr</span>)
+<span class='fu'>library</span>(<span class='no'>purrr</span>)
 <span class='fu'><a href='http://www.rdocumentation.org/packages/ggplot2/topics/ggplot'>ggplot</a></span>(<span class='fu'>path_triangle_map</span>(<span class='no'>p</span>, <span class='no'>tr</span>) <span class='kw'>%&gt;%</span>
 <span class='fu'><a href='http://dplyr.tidyverse.org/reference/join.html'>inner_join</a></span>(<span class='fu'><a href='http://www.rdocumentation.org/packages/purrr/topics/reduce'>reduce</a></span>(<span class='no'>p</span>[<span class='fu'>c</span>(<span class='st'>"path"</span>, <span class='st'>"path_link_vertex"</span>, <span class='st'>"vertex"</span>)], <span class='no'>inner_join</span>))) +
-<span class='fu'><a href='http://www.rdocumentation.org/packages/ggplot2/topics/geom_polygon'>geom_polygon</a></span>(<span class='fu'><a href='http://www.rdocumentation.org/packages/ggplot2/topics/aes'>aes</a></span>(<span class='no'>x_</span>, <span class='no'>y_</span>, <span class='kw'>fill</span> <span class='kw'>=</span> <span class='no'>path_</span>)) + <span class='fu'><a href='http://www.rdocumentation.org/packages/ggplot2/topics/facet_wrap'>facet_wrap</a></span>(~<span class='no'>path_</span>)</div><div class='output co'>#&gt; <span class='message'>Joining, by = "path_"</span></div><div class='output co'>#&gt; <span class='message'>Joining, by = "vertex_"</span></div><div class='output co'>#&gt; <span class='message'>Joining, by = "path_"</span></div><div class='img'><img src='path_triangle_map-1.png' alt='' width='700' height='432.632880098887' /></div><div class='input'>
+<span class='fu'><a href='http://www.rdocumentation.org/packages/ggplot2/topics/geom_polygon'>geom_polygon</a></span>(<span class='fu'><a href='http://www.rdocumentation.org/packages/ggplot2/topics/aes'>aes</a></span>(<span class='no'>x_</span>, <span class='no'>y_</span>, <span class='kw'>fill</span> <span class='kw'>=</span> <span class='no'>path_</span>)) + <span class='fu'><a href='http://www.rdocumentation.org/packages/ggplot2/topics/facet_wrap'>facet_wrap</a></span>(~<span class='no'>path_</span>)</div><div class='output co'>#&gt; <span class='message'>Joining, by = "path_"</span></div><div class='output co'>#&gt; <span class='message'>Joining, by = "vertex_"</span></div><div class='output co'>#&gt; <span class='message'>Joining, by = "path_"</span></div><div class='img'><img src='path_triangle_map-2.png' alt='' width='700' height='432.632880098887' /></div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">

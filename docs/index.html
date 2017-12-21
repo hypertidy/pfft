@@ -59,7 +59,7 @@
 <div id="pfft" class="section level1">
 <div class="page-header"><h1 class="hasAnchor">
 <a href="#pfft" class="anchor"></a>pfft</h1></div>
-<p>The goal of pfft is to …</p>
+<p>The goal of pfft is to provide a straightforward mapping between triangles and the objects they belong to.</p>
 <div id="installation" class="section level2">
 <h2 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h2>
@@ -72,19 +72,23 @@ devtools<span class="op">::</span><span class="kw"><a href="http://www.rdocument
 <a href="#example" class="anchor"></a>Example</h2>
 <p>This is a basic example which shows you how to solve a common problem:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## basic example code</code></pre></div>
+</div>
+</div>
+<div id="rationale" class="section level1">
+<h1 class="hasAnchor">
+<a href="#rationale" class="anchor"></a>Rationale</h1>
+<p>At the moment this is just an exploratory test-bed for anglr.</p>
 <p>Polygon finder for triangles</p>
 <p>This workflow came from anglr, the current scheme is to triangulate set-wide, on the entire layer and then find out which polygon each triangle belongs to. This is because polygons that wrap around a void but only touch at a single vertex end up with that void being kept as only the regions inside holes was being removed.</p>
 <p>If we do it set-wide we can’t check each feature individually (a feature might be inside a hole of another feature), and we can’t sensibly normalize triangles that fall into overlapping features.</p>
 <p>Together this gives the best of all (that’s the theory, today!) and solves a bunch of lingering problems that anglr has.</p>
 <p>If we provide a native point-in-polygon routine here then we can abandon dependencies that bring in other unused libs.</p>
-<p>This looks good, though maybe geometry or ptinpoly or something like that:</p>
-<p><a href="https://stackoverflow.com/a/36684485/355270" class="uri">https://stackoverflow.com/a/36684485/355270</a></p>
 <p>This also means we can use z-fighting, easily visible with rgl, to indicate when we have overlapping features - and also ilustrate how we need to de-normalize for discrete features in 3D, etc. etc.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(raster)
 <span class="co">#&gt; Loading required package: sp</span>
 <span class="kw">library</span>(spex)
 <span class="kw">library</span>(sf)
-<span class="co">#&gt; Linking to GEOS 3.5.1, GDAL 2.2.2, proj.4 4.9.3</span>
+<span class="co">#&gt; Linking to GEOS 3.5.1, GDAL 2.2.3, proj.4 4.9.3</span>
 <span class="kw">library</span>(dplyr)
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Attaching package: 'dplyr'</span>
@@ -99,12 +103,10 @@ devtools<span class="op">::</span><span class="kw"><a href="http://www.rdocument
 <span class="co">#&gt;     intersect, setdiff, setequal, union</span>
 <span class="kw">library</span>(pfft)
 <span class="kw">library</span>(rgl)
-<span class="co">#&gt; Warning in rgl.init(initValue, onlyNULL): RGL: unable to open X11 display</span>
-<span class="co">#&gt; Warning: 'rgl_init' failed, running with rgl.useNULL = TRUE</span>
 <span class="kw">data</span>(<span class="st">"holey"</span>, <span class="dt">package =</span> <span class="st">"spbabel"</span>)
-<span class="co">#x &lt;- st_as_sf(spbabel::sp(holey))</span>
-<span class="kw">library</span>(sf)
-x &lt;-<span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/sf/topics/st_read">read_sf</a></span>(<span class="kw">system.file</span>(<span class="st">"shape/nc.shp"</span>, <span class="dt">package=</span><span class="st">"sf"</span>))
+x &lt;-<span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/sf/topics/st_as_sf">st_as_sf</a></span>(spbabel<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/spbabel/topics/sp">sp</a></span>(holey))
+<span class="co">#library(sf)</span>
+<span class="co">#x &lt;- read_sf(system.file("shape/nc.shp", package="sf"))</span>
 <span class="co">#data("minimal_mesh", package = "silicate")</span>
 <span class="co">#x &lt;- minimal_mesh</span>
 max_area &lt;-<span class="st"> </span><span class="ot">NULL</span>
@@ -112,42 +114,60 @@ p &lt;-<span class="st"> </span>silicate<span class="op">::</span><span class="k
 RTri &lt;-<span class="st"> </span><span class="kw"><a href="reference/edge_RTriangle.html">edge_RTriangle</a></span>(p)
 ptm &lt;-<span class="st"> </span><span class="kw"><a href="reference/path_triangle_map.html">path_triangle_map</a></span>(p, RTri)
 
-
-triangle &lt;-<span class="st"> </span>tibble<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/tibble/topics/tibble">tibble</a></span>(<span class="dt">triangle_ =</span> silicate<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/silicate/topics/sc_uid">sc_uid</a></span>(<span class="kw"><a href="http://www.rdocumentation.org/packages/raster/topics/ncell">nrow</a></span>(RTri<span class="op">$</span>T)), <span class="dt">triangle_idx =</span> <span class="dv">1</span><span class="op">:</span><span class="kw"><a href="http://www.rdocumentation.org/packages/raster/topics/ncell">nrow</a></span>(RTri<span class="op">$</span>T))
+## unique triangles
+triangle &lt;-<span class="st"> </span>tibble<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/tibble/topics/tibble">tibble</a></span>(<span class="dt">triangle_ =</span> silicate<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/silicate/topics/sc_uid">sc_uid</a></span>(<span class="kw"><a href="http://www.rdocumentation.org/packages/raster/topics/ncell">nrow</a></span>(RTri<span class="op">$</span>T)))
+## all triangle instances
 ptm[[<span class="st">"triangle_"</span>]] &lt;-<span class="st"> </span>triangle[[<span class="st">"triangle_"</span>]][ptm[[<span class="st">"triangle_idx"</span>]]]
-ptm &lt;-<span class="st"> </span>dplyr<span class="op">::</span><span class="kw"><a href="http://dplyr.tidyverse.org/reference/join.html">inner_join</a></span>(ptm, p[[<span class="st">"path"</span>]][<span class="kw">c</span>(<span class="st">"path_"</span>, <span class="st">"object_"</span>, <span class="st">"subobject"</span>)])
+ptm[[<span class="st">"triangle_idx"</span>]] &lt;-<span class="st"> </span><span class="ot">NULL</span>
+## any triangle that occurs an even number of times in a path per object is part of a hole
+ptm &lt;-<span class="st"> </span>dplyr<span class="op">::</span><span class="kw"><a href="http://dplyr.tidyverse.org/reference/join.html">inner_join</a></span>(ptm, p[[<span class="st">"path"</span>]][<span class="kw">c</span>(<span class="st">"path_"</span>, <span class="st">"object_"</span>)])
 <span class="co">#&gt; Joining, by = "path_"</span>
-ptm &lt;-<span class="st"> </span>ptm <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="http://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span>(object_,  subobject, triangle_idx) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="http://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span>(<span class="dt">n =</span> <span class="kw"><a href="http://dplyr.tidyverse.org/reference/n.html">n</a></span>()) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="http://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span>()  <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw"><a href="http://dplyr.tidyverse.org/reference/filter.html">filter</a></span>(n <span class="op">&lt;</span><span class="st"> </span><span class="dv">2</span>)
+ptm &lt;-<span class="st"> </span>ptm <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="http://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span>(object_,triangle_) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="http://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span>(<span class="dt">n =</span> <span class="kw"><a href="http://dplyr.tidyverse.org/reference/n.html">n</a></span>()) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="http://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span>()  <span class="co">#%&gt;% </span>
 
-
-o &lt;-<span class="st"> </span>p[[<span class="st">"object"</span>]]
-t &lt;-<span class="st"> </span>ptm <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#ptm %&gt;% dplyr::inner_join(p$path %&gt;% dplyr::select(object_, path_)) %&gt;% </span>
-<span class="st">  </span>dplyr<span class="op">::</span><span class="kw"><a href="http://dplyr.tidyverse.org/reference/select.html">select</a></span>(object_, triangle_)
-remove_idx &lt;-<span class="st">  </span><span class="kw"><a href="http://dplyr.tidyverse.org/reference/setops.html">setdiff</a></span>(<span class="dv">1</span><span class="op">:</span><span class="kw"><a href="http://www.rdocumentation.org/packages/raster/topics/ncell">nrow</a></span>(RTri<span class="op">$</span>T), ptm<span class="op">$</span>triangle_idx)
-ptm &lt;-<span class="st"> </span>ptm <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw"><a href="http://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span>(triangle_idx)
-<span class="cf">if</span> (<span class="kw">length</span>(remove_idx) <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>) TT &lt;-<span class="st"> </span>RTri<span class="op">$</span>T[<span class="op">-</span>remove_idx, ] <span class="cf">else</span> TT &lt;-<span class="st"> </span>RTri<span class="op">$</span>T
-tXv &lt;-<span class="st"> </span>tibble<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/tibble/topics/tibble">tibble</a></span>(<span class="dt">vertex_ =</span> p[[<span class="st">"vertex"</span>]][[<span class="st">"vertex_"</span>]][<span class="kw"><a href="http://www.rdocumentation.org/packages/raster/topics/transpose">t</a></span>(TT)], 
-                      <span class="dt">triangle_ =</span> <span class="kw">rep</span>(ptm[[<span class="st">"triangle_"</span>]], <span class="dt">each =</span> <span class="dv">3</span>))
+tt &lt;-<span class="st"> </span>dplyr<span class="op">::</span><span class="kw"><a href="http://dplyr.tidyverse.org/reference/select.html">select</a></span>(ptm, object_, triangle_) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw"><a href="http://dplyr.tidyverse.org/reference/join.html">anti_join</a></span>(ptm <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="http://dplyr.tidyverse.org/reference/filter.html">filter</a></span>(n <span class="op">%%</span><span class="st"> </span><span class="dv">2</span> <span class="op">==</span><span class="st"> </span><span class="dv">0</span>) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw"><a href="http://dplyr.tidyverse.org/reference/select.html">select</a></span>(object_, triangle_))
+<span class="co">#&gt; Joining, by = c("object_", "triangle_")</span>
+<span class="co">#if (length(remove_idx) &gt; 0) TT &lt;- RTri$T[-remove_idx, ] else TT &lt;- RTri$T</span>
+tXv &lt;-<span class="st"> </span>tibble<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/tibble/topics/tibble">tibble</a></span>(<span class="dt">vertex_ =</span> p[[<span class="st">"vertex"</span>]][[<span class="st">"vertex_"</span>]][<span class="kw"><a href="http://www.rdocumentation.org/packages/raster/topics/transpose">t</a></span>(RTri<span class="op">$</span>T)], 
+                      <span class="dt">triangle_ =</span> <span class="kw">rep</span>(triangle[[<span class="st">"triangle_"</span>]], <span class="dt">each =</span> <span class="dv">3</span>))
 
 v &lt;-<span class="st"> </span>p[[<span class="st">"vertex"</span>]]
-outlist &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">o =</span> o, <span class="dt">t =</span> t, <span class="dt">tXv =</span> tXv, <span class="dt">v =</span> v)
+outlist &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">o =</span> p<span class="op">$</span>o, <span class="dt">t =</span> tt, <span class="dt">tXv =</span> tXv, <span class="dt">v =</span> v)
  <span class="kw">class</span>(outlist) &lt;-<span class="st"> "trimesh"</span>
-  
+
+ 
+ <span class="kw">library</span>(ggplot2)
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Attaching package: 'ggplot2'</span>
+<span class="co">#&gt; The following object is masked from 'package:spex':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     ylim</span>
+<span class="co">#&gt; The following object is masked from 'package:raster':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     calc</span>
+ <span class="kw">library</span>(dplyr)
+gg &lt;-<span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/ggplot2/topics/ggplot">ggplot</a></span>(purrr<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/purrr/topics/reduce">reduce</a></span>(outlist[<span class="kw">c</span>(<span class="st">"tXv"</span>, <span class="st">"v"</span>, <span class="st">"t"</span>, <span class="st">"o"</span>)], inner_join))
+<span class="co">#&gt; Joining, by = "vertex_"</span>
+<span class="co">#&gt; Joining, by = "triangle_"</span>
+<span class="co">#&gt; Joining, by = "object_"</span>
+
+gg <span class="op">+</span><span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/ggplot2/topics/geom_polygon">geom_polygon</a></span>(<span class="kw"><a href="http://www.rdocumentation.org/packages/ggplot2/topics/aes">aes</a></span>(x_, y_, <span class="dt">group =</span> triangle_, <span class="dt">fill =</span> triangle_)) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/ggplot2/topics/facet_wrap">facet_wrap</a></span>(<span class="op">~</span>object_, <span class="dt">nr =</span> <span class="dv">2</span>)</code></pre></div>
+<p><img src="reference/figures/README-unnamed-chunk-1-1.png" width="100%"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">
 <span class="kw">library</span>(anglr)
 rgl<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/rgl/topics/scene">rgl.clear</a></span>()
-<span class="kw"><a href="http://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(outlist)
+<span class="kw"><a href="http://www.rdocumentation.org/packages/anglr/topics/plot-anglr">plot</a></span>(outlist)
 <span class="co">#&gt; Joining, by = "triangle_"</span>
 <span class="co">#&gt; Joining, by = "object_"</span>
 rgl<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/rgl/topics/rglwidget">rglwidget</a></span>()</code></pre></div>
-<div id="rgl17530" style="width:672px;height:480px;" class="rglWebGL html-widget"></div>
-<script type="application/json" data-for="rgl17530">{"x":{"material":{"color":["#FFFFFF","#FF0000"],"alpha":1,"lit":true,"ambient":"#000000","specular":"#FFFFFF","emission":"#000000","shininess":50,"smooth":true,"front":"filled","back":"filled","size":3,"lwd":1,"fog":true,"point_antialias":false,"line_antialias":false,"texture":null,"textype":"rgb","texmipmap":false,"texminfilter":"linear","texmagfilter":"linear","texenvmap":false,"depth_mask":true,"depth_test":"less","isTransparent":false},"rootSubscene":1,"objects":{"6":{"id":6,"reuse":"rgl41920"},"5":{"id":5,"reuse":"rgl41920"},"4":{"id":4,"reuse":"rgl41920"},"1":{"id":1,"type":"subscene","par3d":{"antialias":1,"FOV":90,"ignoreExtent":false,"listeners":1,"mouseMode":{"left":"polar","right":"fov","middle":"zoom","wheel":"pull"},"observer":[0,0,6.55564165115356],"modelMatrix":[[1,0,0,79.8904113769531],[0,0.965925812721252,-0.258819043636322,-34.0351905822754],[0,0.258819043636322,0.965925812721252,-15.6753425598145],[0,0,0,1]],"projMatrix":[[1,0,0,0],[0,1,0,0],[0,0,-1.41421353816986,-4.63553905487061],[0,0,-1,0]],"skipRedraw":false,"userMatrix":[[1,0,0,0],[0,0.965925812721252,-0.258819043636322,0],[0,0.258819043636322,0.965925812721252,0],[0,0,0,1]],"scale":[1,1,1],"viewport":{"x":0,"y":0,"width":1,"height":1},"zoom":1,"bbox":[-84.3238525390625,-75.4569778442383,33.8819923400879,36.5896492004395,0,0],"windowRect":[0,0,256,256],"family":"sans","font":1,"cex":1,"useFreeType":false,"fontname":"NULL","maxClipPlanes":2147483647,"glVersion":"NaN"},"embeddings":{"viewport":"replace","projection":"replace","model":"replace"},"objects":[4,6,5],"subscenes":[],"flags":515}},"width":672,"height":480,"sphereVerts":{"reuse":"rgl41920"},"webGLoptions":{"preserveDrawingBuffer":true},"context":{"shiny":false,"rmarkdown":"github_document"}},"evals":[],"jsHooks":[]}</script><div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># gibble_pip &lt;- function(pts, gm, coords) {</span>
+<div id="rgl43812" style="width:672px;height:480px;" class="rglWebGL html-widget"></div>
+<script type="application/json" data-for="rgl43812">{"x":{"material":{"color":["#FFFFFF","#FF0000"],"alpha":1,"lit":true,"ambient":"#000000","specular":"#FFFFFF","emission":"#000000","shininess":50,"smooth":true,"front":"filled","back":"filled","size":3,"lwd":1,"fog":true,"point_antialias":false,"line_antialias":false,"texture":null,"textype":"rgb","texmipmap":false,"texminfilter":"linear","texmagfilter":"linear","texenvmap":false,"depth_mask":true,"depth_test":"less","isTransparent":false},"rootSubscene":1,"objects":{"6":{"id":6,"reuse":"rgl44336"},"5":{"id":5,"reuse":"rgl44336"},"4":{"id":4,"reuse":"rgl44336"},"1":{"id":1,"type":"subscene","par3d":{"antialias":1,"FOV":90,"ignoreExtent":false,"listeners":1,"mouseMode":{"left":"polar","right":"fov","middle":"zoom","wheel":"pull"},"observer":[0,0,40.4474945068359],"modelMatrix":[[1,0,0,-23],[0,0.965925812721252,-0.258819043636322,-16.4207382202148],[0,0.258819043636322,0.965925812721252,-44.8474197387695],[0,0,0,1]],"projMatrix":[[1,0,0,0],[0,1,0,0],[0,0,-1.41421341896057,-28.6006946563721],[0,0,-1,0]],"skipRedraw":false,"userMatrix":[[1,0,0,0],[0,0.965925812721252,-0.258819043636322,0],[0,0.258819043636322,0.965925812721252,0],[0,0,0,1]],"scale":[1,1,1],"viewport":{"x":0,"y":0,"width":1,"height":1},"zoom":1,"bbox":[0,46,0,34,0,0],"windowRect":[0,0,256,256],"family":"sans","font":1,"cex":1,"useFreeType":false,"fontname":"NULL","maxClipPlanes":2147483647,"glVersion":"NaN"},"embeddings":{"viewport":"replace","projection":"replace","model":"replace"},"objects":[4,6,5],"subscenes":[],"flags":515}},"width":672,"height":480,"sphereVerts":{"reuse":"rgl44336"},"webGLoptions":{"preserveDrawingBuffer":true},"context":{"shiny":false,"rmarkdown":"github_document"}},"evals":[],"jsHooks":[]}</script><div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># gibble_pip &lt;- function(pts, gm, coords) {</span>
 <span class="co">#   object_id &lt;- rep(seq_len(nrow(gm)), gm[["nrow"]])</span>
 <span class="co">#   tibble::tibble(ipoly = sp::over(SpatialPoints(as.matrix(pts)), </span>
 <span class="co">#                                   sp::SpatialPolygons(purrr::imap(split(coords, object_id), </span>
 <span class="co">#                                                                   ~ sp::Polygons(list(sp::Polygon(as.matrix(.x))), .y)))</span>
 <span class="co">#   ))</span>
 <span class="co"># }</span></code></pre></div>
-</div>
 </div>
 <div id="dev" class="section level1">
 <h1 class="hasAnchor">
