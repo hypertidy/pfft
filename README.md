@@ -1,12 +1,12 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-pfft
-====
 
-The goal of pfft is to provide a straightforward mapping between triangles and the objects they belong to.
+# pfft
 
-Installation
-------------
+The goal of pfft is to provide a straightforward mapping between
+triangles and the objects they belong to.
+
+## Installation
 
 You can install pfft from github with:
 
@@ -15,8 +15,14 @@ You can install pfft from github with:
 devtools::install_github("mdsumner/pfft")
 ```
 
-Example
--------
+TODO get a stripped down pip see
+<http://www.inf.usi.ch/hormann/papers/Hormann.2001.TPI.pdf>
+
+<https://gist.github.com/yitang/d6420b695799101f1865>
+
+<https://stackoverflow.com/questions/36683825/how-to-check-if-a-point-is-in-a-polygon-effectively-using-r-for-large-data-set>
+
+## Example
 
 This is a basic example which shows you how to solve a common problem:
 
@@ -24,29 +30,38 @@ This is a basic example which shows you how to solve a common problem:
 ## basic example code
 ```
 
-Rationale
-=========
+# Rationale
 
 At the moment this is just an exploratory test-bed for anglr.
 
 Polygon finder for triangles
 
-This workflow came from anglr, the current scheme is to triangulate set-wide, on the entire layer and then find out which polygon each triangle belongs to. This is because polygons that wrap around a void but only touch at a single vertex end up with that void being kept as only the regions inside holes was being removed.
+This workflow came from anglr, the current scheme is to triangulate
+set-wide, on the entire layer and then find out which polygon each
+triangle belongs to. This is because polygons that wrap around a void
+but only touch at a single vertex end up with that void being kept as
+only the regions inside holes was being removed.
 
-If we do it set-wide we can't check each feature individually (a feature might be inside a hole of another feature), and we can't sensibly normalize triangles that fall into overlapping features.
+If we do it set-wide we can’t check each feature individually (a feature
+might be inside a hole of another feature), and we can’t sensibly
+normalize triangles that fall into overlapping features.
 
-Together this gives the best of all (that's the theory, today!) and solves a bunch of lingering problems that anglr has.
+Together this gives the best of all (that’s the theory, today\!) and
+solves a bunch of lingering problems that anglr has.
 
-If we provide a native point-in-polygon routine here then we can abandon dependencies that bring in other unused libs.
+If we provide a native point-in-polygon routine here then we can abandon
+dependencies that bring in other unused libs.
 
-This also means we can use z-fighting, easily visible with rgl, to indicate when we have overlapping features - and also ilustrate how we need to de-normalize for discrete features in 3D, etc. etc.
+This also means we can use z-fighting, easily visible with rgl, to
+indicate when we have overlapping features - and also ilustrate how we
+need to de-normalize for discrete features in 3D, etc. etc.
 
 ``` r
 library(raster)
 #> Loading required package: sp
 library(spex)
 library(sf)
-#> Linking to GEOS 3.5.1, GDAL 2.2.3, proj.4 4.9.3
+#> Linking to GEOS 3.6.2, GDAL 2.3.0, proj.4 4.9.3
 library(dplyr)
 #> 
 #> Attaching package: 'dplyr'
@@ -61,6 +76,8 @@ library(dplyr)
 #>     intersect, setdiff, setequal, union
 library(pfft)
 library(rgl)
+#> Warning in rgl.init(initValue, onlyNULL): RGL: unable to open X11 display
+#> Warning: 'rgl_init' failed, running with rgl.useNULL = TRUE
 data("holey", package = "spbabel")
 x <- st_as_sf(spbabel::sp(holey))
 #library(sf)
@@ -97,6 +114,9 @@ outlist <- list(o = p$o, t = tt, tXv = tXv, v = v)
  library(ggplot2)
 #> 
 #> Attaching package: 'ggplot2'
+#> The following object is masked from 'package:dplyr':
+#> 
+#>     vars
 #> The following object is masked from 'package:spex':
 #> 
 #>     ylim
@@ -126,10 +146,16 @@ gg + geom_polygon(aes(x_, y_, group = triangle_, colour = object_))
 
 
 library(anglr)
+#> 
+#> Attaching package: 'anglr'
+#> The following object is masked from 'package:rgl':
+#> 
+#>     plot3d
 rgl::rgl.clear()
 plot(outlist)
-#> Joining, by = "triangle_"
-#> Joining, by = "object_"
+#> Warning: 'plot(<tri_mesh>)' is deprecated.
+#> Use 'plot.TRI' instead.
+#> See help("Deprecated") and help("anglr-deprecated").
 rgl::rglwidget()
 ```
 
@@ -145,8 +171,7 @@ rgl::rglwidget()
 # }
 ```
 
-Dev
-===
+# Dev
 
 ``` r
 

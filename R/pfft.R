@@ -32,7 +32,7 @@ edge_RTriangle <- function(x, ...) {
 #'
 #' @return  data frame mapping triangles to their containing paths
 #' @export
-#'
+#' @importFrom polyclip pointinpolygon
 #' @examples
 #' data("minimal_mesh", package = "silicate")
 #' p <- silicate::PATH(minimal_mesh)
@@ -52,7 +52,8 @@ path_triangle_map <- function(x, RTri) {
   ex <- extents(x)
   gm <- x[["path"]]
   ## map of which points to look up
-  pipmap <- split(ex, ex$path_) %>%
+
+  pipmap <- split(ex, ex$path_)[unique(ex$path_)] %>%
     purrr::map(~ (centroids[,1] >= .x[["xmn"]] &
                     centroids[,1] <= .x[["xmx"]] &
                     centroids[, 2] >= .x[["ymn"]] &
@@ -66,7 +67,10 @@ path_triangle_map <- function(x, RTri) {
   for (i in seq_along(pipmap)) {
     if (len[i] > 0) {
       ## replace this with a generic native function
-      pip[[i]][pipmap[[i]]] <-    sp::point.in.polygon(centroids[pipmap[[i]], 1], centroids[pipmap[[i]],2], lc[[i]][["x_"]], lc[[i]][["y_"]]) > 0
+#      pip[[i]][pipmap[[i]]] <-
+             ##sp::point.in.polygon(centroids[pipmap[[i]], 1], centroids[pipmap[[i]],2], lc[[i]][["x_"]], lc[[i]][["y_"]]) > 0
+      pip[[i]][pipmap[[i]]] <-  abs(polyclip::pointinpolygon(list(x = centroids[pipmap[[i]], 1], y = centroids[pipmap[[i]],2]),
+                                                         list(x = lc[[i]][["x_"]], y = lc[[i]][["y_"]]))) > 0L
     } else {
       pip[[i]][] <- FALSE
     }

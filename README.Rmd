@@ -26,6 +26,12 @@ You can install pfft from github with:
 devtools::install_github("mdsumner/pfft")
 ```
 
+TODO get a stripped down pip see http://www.inf.usi.ch/hormann/papers/Hormann.2001.TPI.pdf
+
+https://gist.github.com/yitang/d6420b695799101f1865
+
+https://stackoverflow.com/questions/36683825/how-to-check-if-a-point-is-in-a-polygon-effectively-using-r-for-large-data-set
+
 ## Example
 
 This is a basic example which shows you how to solve a common problem:
