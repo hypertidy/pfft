@@ -11,10 +11,11 @@ Imports:
     dplyr,
     rlang,
     RTriangle,
-    silicate,
+    silicate (>= 0.1.5.9001),
     polyclip,
     tibble
 RoxygenNote: 6.1.1
 Suggests: 
     ggplot2,
     purrr
+Remotes: hypertidy/silicate

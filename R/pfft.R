@@ -20,7 +20,7 @@
 edge_RTriangle <- function(x, ...) {
   ps <- RTriangle::pslg(P = as.matrix(x[["vertex"]][c("x_", "y_")]),
                         S = matrix(match(silicate::sc_edge(x) %>%
-                                           dplyr::select(.data$.vertex0, .data$.vertex1) %>%
+                                           dplyr::select(.data$.vx0, .data$.vx1) %>%
                                            as.matrix() %>% t() %>% as.vector(), x[["vertex"]][["vertex_"]]), ncol = 2, byrow = TRUE))
   RTriangle::triangulate(ps, ...)
 }
